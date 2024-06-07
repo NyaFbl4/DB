@@ -1,0 +1,61 @@
+  public static class ServiceLocator
+    {
+        private static Dictionary<Type, object> _services = new();
+
+        public static object GetService(Type contractType)
+        {
+            return _services[contractType];
+        }
+        
+        public static T GetService<T>() where T : class
+        {
+            return _services[typeof(T)] as T;
+        }        
+        
+        public static void AddService<T>(object service)
+        {
+            _services[typeof(T)] = service;
+        }
+
+        public static void RemoveService<T>()
+        {
+            _services.Remove(typeof(T));
+        }
+
+        public static void Clear()
+        {
+            _services.Clear();
+        }
+    }
+
+    public class ServiceInstaller : MonoBehaviour
+    {
+        [SerializeField] private Character _character;
+        [SerializeField] private MoveInput _moveInput;  
+        [SerializeField] private new Camera _camera;
+        
+        private void Awake()
+        {
+            ServiceLocator.AddService<Character>(this._character);
+            ServiceLocator.AddService<MoveInput>(this._moveInput);
+            ServiceLocator.AddService<Camera>(this._camera);
+        }
+    }
+
+    public sealed class MoveController : MonoBehaviour
+    {
+        private Character _character;
+        private MoveInput _moveInput;
+
+
+        private void Start()
+        {
+            this._character = ServiceLocator.GetService<Character>();
+            this._moveInput = ServiceLocator.GetService<MoveInput>();
+        }
+
+        private void Update()
+        {
+            this._character.Move(this._moveInput.GetDirection(), Time.deltaTime);
+        }
+    }
